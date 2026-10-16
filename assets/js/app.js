@@ -265,6 +265,10 @@ window.FC = window.FC || {};
 
     FC.store.load();
     await FC.auth.init();
+    if (!me()) {
+      await FC.auth.loginDemo("afnana");
+      if (me()) toast("Browsing as demo resident @afnana — log out to switch accounts", "gold");
+    }
     if (me()) enterApp();
     else showAuth();
     FC.router.start();
