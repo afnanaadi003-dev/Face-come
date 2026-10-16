@@ -116,15 +116,53 @@ window.FC = window.FC || {};
     };
   }
 
+  function isValid(db) {
+    return !!(db && db.version === 1 &&
+      Array.isArray(db.users) && db.users.length &&
+      Array.isArray(db.posts) && db.site && typeof db.site.name === "string");
+  }
+
+  function repair(db) {
+    const s = seed();
+    ["threads", "notifications", "products", "books", "movies", "games",
+     "suggestions", "orders", "carts", "borrows", "reviews"].forEach((k) => {
+      if (db[k] == null) db[k] = s[k];
+    });
+    if (!db.pages || typeof db.pages !== "object") db.pages = s.pages;
+    if (!db.site || typeof db.site !== "object") db.site = s.site;
+    if (!db.adminAuth) db.adminAuth = { user: "admin", salt: "facecomeadmin", passHash: null, tries: 0, lockUntil: 0 };
+    db.users.forEach((u) => {
+      if (!u.id) return;
+      if (!u.photo) u.photo = photoArt(u.name || u.username || "?", u.id);
+      if (!u.cover) u.cover = coverArt(u.name || u.username || "?", u.id);
+      if (typeof u.tokens !== "number") u.tokens = 30;
+      if (!Array.isArray(u.mascots)) u.mascots = [];
+      if (typeof u.banned !== "boolean") u.banned = false;
+      if (u.demo == null) u.demo = false;
+      if (!u.role) u.role = "user";
+    });
+    db.posts.forEach((p) => {
+      p.love = Array.isArray(p.love) ? p.love : [];
+      p.respect = Array.isArray(p.respect) ? p.respect : [];
+      p.comments = Array.isArray(p.comments) ? p.comments : [];
+      if (!p.createdAt) p.createdAt = Date.now();
+      if (!p.type) p.type = "text";
+    });
+    db.posts = db.posts.filter((p) => !!p.id && !!p.userId);
+    return db;
+  }
+
   function load() {
     if (DB) return DB;
     try {
       const raw = localStorage.getItem(KEY);
       DB = raw ? JSON.parse(raw) : null;
     } catch (e) { DB = null; }
-    if (!DB || DB.version !== 1 || !Array.isArray(DB.users) || !Array.isArray(DB.posts)) {
+    if (!isValid(DB)) {
       DB = seed();
       save();
+    } else {
+      repair(DB);
     }
     return DB;
   }
@@ -141,7 +179,7 @@ window.FC = window.FC || {};
   }
 
   function reset() {
-    localStorage.removeItem(KEY);
+    try { localStorage.removeItem(KEY); } catch (e) {}
     DB = null;
     load();
   }

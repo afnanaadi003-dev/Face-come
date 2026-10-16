@@ -243,7 +243,17 @@ window.FC = window.FC || {};
   }
 
   /* ── feed view ── */
-  function renderFeed(view) {
+  function bindRestore(root) {
+    const btn = qs("#restoreDemo", root);
+    if (!btn) return;
+    btn.addEventListener("click", () => {
+      if (!confirm("Restore the Facecome demo content in this browser? Your local changes will be replaced.")) return;
+      FC.store.reset();
+      location.reload();
+    });
+  }
+
+  function renderFeedView(view) {
     const viewer = me();
     const db = FC.store.load();
     if (!viewer) {
@@ -279,15 +289,27 @@ window.FC = window.FC || {};
           : "Nothing in this category yet — share the first one.") + "</p>") +
       "</div>";
 
-    const restore = qs("#restoreDemo", view);
-    if (restore) restore.addEventListener("click", () => {
-      if (!confirm("Restore the Facecome demo content in this browser? Your local changes will be replaced.")) return;
-      FC.store.reset();
-      location.reload();
-    });
+    bindRestore(view);
     qsa("[data-f]", view).forEach((c) => c.addEventListener("click", () => { filter = c.dataset.f; renderFeed(view); }));
     bindComposer(view);
     bindPostEvents(view);
+  }
+
+  function renderFeed(view) {
+    try {
+      renderFeedView(view);
+    } catch (e) {
+      console.error("Facecome feed failed:", e);
+      view.innerHTML =
+        '<div class="view-head"><h1 class="gold-text">Flow</h1></div>' +
+        '<section class="composer glass"><p><b>The Flow could not be loaded</b> — this browser has damaged or blocked saved data.</p>' +
+        '<p class="muted" style="font-size:.85rem">' + esc(e && e.message ? e.message : e) + "</p>" +
+        '<div class="form-row"><button class="btn gold" id="restoreDemo" type="button">Restore demo posts</button>' +
+        '<button class="btn" id="reloadFeed" type="button">Try again</button></div></section>';
+      bindRestore(view);
+      const rl = qs("#reloadFeed", view);
+      if (rl) rl.addEventListener("click", () => location.reload());
+    }
   }
 
   FC.feed = { renderFeed, postCardHTML, bindPostEvents, demoReactTo, avatarHTML };
