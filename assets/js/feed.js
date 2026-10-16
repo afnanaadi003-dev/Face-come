@@ -19,8 +19,13 @@ window.FC = window.FC || {};
 
   function postCardHTML(p, opts) {
     opts = opts || {};
-    const u = FC.store.userById(p.userId);
-    if (!u) return "";
+    p.love = p.love || [];
+    p.respect = p.respect || [];
+    p.comments = p.comments || [];
+    const u = FC.store.userById(p.userId) || {
+      id: p.userId, name: "Former resident", username: "", color: "#9aa3b8",
+      photo: FC.ui.photoArt("?", p.userId),
+    };
     const viewer = me();
     const isMine = viewer && viewer.id === u.id;
     const loved = viewer && p.love.includes(viewer.id);
@@ -240,8 +245,20 @@ window.FC = window.FC || {};
   /* ── feed view ── */
   function renderFeed(view) {
     const viewer = me();
-    if (!viewer) return;
     const db = FC.store.load();
+    if (!viewer) {
+      view.innerHTML =
+        '<div class="view-head"><h1 class="gold-text">Flow</h1><p class="muted">' + esc(db.site.tagline) + "</p></div>" +
+        '<section class="composer glass"><p>You are browsing Facecome as a guest — log in to share, react and comment.</p>' +
+        '<div class="form-row"><button class="btn gold" id="guestLogin" type="button">Log in / Sign up</button>' +
+        '<a class="btn" href="admin/">Admin</a></div></section>' +
+        '<div class="post-list" id="postList">' + db.posts.slice().sort((a, b) => b.createdAt - a.createdAt)
+          .map((p) => postCardHTML(p)).join("") + "</div>";
+      const gl = qs("#guestLogin", view);
+      if (gl) gl.addEventListener("click", () => FC.app.showAuth());
+      bindPostEvents(view);
+      return;
+    }
     const chips = [["all", "All"], ["thoughts", "Thoughts"], ["images", "Images"], ["videos", "Videos"], ["live", "Live"], ["love", "Love Zone"]];
     const catMap = { thoughts: ["thoughts"], images: ["images"], videos: ["videos"], live: ["live"], love: ["love"] };
     let posts = db.posts.slice().sort((a, b) => b.createdAt - a.createdAt);
@@ -256,9 +273,18 @@ window.FC = window.FC || {};
         '<button class="chip ' + (filter === v ? "on" : "") + '" data-f="' + v + '">' + l + "</button>").join("") + "</div>" +
       '<div class="post-list" id="postList">' +
       (posts.length ? posts.map((p) => postCardHTML(p)).join("") :
-        '<p class="muted empty">Nothing in this category yet — share the first one.</p>') +
+        '<p class="muted empty">' + (filter === "all"
+          ? "The Flow is quiet — nothing is stored in this browser. "
+            + '<button class="btn gold sm" id="restoreDemo" type="button">Restore demo posts</button>'
+          : "Nothing in this category yet — share the first one.") + "</p>") +
       "</div>";
 
+    const restore = qs("#restoreDemo", view);
+    if (restore) restore.addEventListener("click", () => {
+      if (!confirm("Restore the Facecome demo content in this browser? Your local changes will be replaced.")) return;
+      FC.store.reset();
+      location.reload();
+    });
     qsa("[data-f]", view).forEach((c) => c.addEventListener("click", () => { filter = c.dataset.f; renderFeed(view); }));
     bindComposer(view);
     bindPostEvents(view);

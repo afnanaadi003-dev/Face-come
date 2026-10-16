@@ -122,7 +122,7 @@ window.FC = window.FC || {};
       const raw = localStorage.getItem(KEY);
       DB = raw ? JSON.parse(raw) : null;
     } catch (e) { DB = null; }
-    if (!DB || DB.version !== 1 || !Array.isArray(DB.users)) {
+    if (!DB || DB.version !== 1 || !Array.isArray(DB.users) || !Array.isArray(DB.posts)) {
       DB = seed();
       save();
     }
@@ -165,8 +165,8 @@ window.FC = window.FC || {};
   /* ── session ── */
   const session = {
     get: () => { try { return localStorage.getItem(SESSION); } catch (e) { return null; } },
-    set: (id) => localStorage.setItem(SESSION, id),
-    clear: () => localStorage.removeItem(SESSION),
+    set: (id) => { try { localStorage.setItem(SESSION, id); } catch (e) {} },
+    clear: () => { try { localStorage.removeItem(SESSION); } catch (e) {} },
   };
 
   /* ── entity helpers ── */

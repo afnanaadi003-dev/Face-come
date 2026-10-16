@@ -254,6 +254,22 @@ window.FC = window.FC || {};
     return ["INPUT", "TEXTAREA", "SELECT"].indexOf(a.tagName) >= 0 && el.view.contains(a);
   }
 
+  function showBootError() {
+    el.app.hidden = true;
+    el.auth.hidden = false;
+    document.title = "Facecome";
+    el.auth.innerHTML =
+      '<div class="auth-card">' +
+        '<h2 class="gold-text">Facecome could not start</h2>' +
+        '<p class="muted">This browser blocked or ran out of storage space, so your feed cannot be loaded. ' +
+        "Try a normal window (not private/incognito), or reset the demo data below.</p>" +
+        '<div class="form-row"><button class="btn gold" id="bootReset" type="button">Reset demo data</button>' +
+        '<button class="btn" id="bootRetry" type="button">Try again</button></div>' +
+      "</div>";
+    qs("#bootReset", el.auth).addEventListener("click", () => { try { FC.store.reset(); } catch (e) {} location.reload(); });
+    qs("#bootRetry", el.auth).addEventListener("click", () => location.reload());
+  }
+
   /* ── boot ── */
   async function boot() {
     el.auth = qs("#authScreen");
@@ -263,14 +279,19 @@ window.FC = window.FC || {};
     el.view = qs("#view");
     el.ann = qs("#announce");
 
-    FC.store.load();
-    await FC.auth.init();
-    if (!me()) {
-      await FC.auth.loginDemo("afnana");
-      if (me()) toast("Browsing as demo resident @afnana — log out to switch accounts", "gold");
+    try {
+      FC.store.load();
+      await FC.auth.init();
+      if (!me()) {
+        await FC.auth.loginDemo("afnana");
+        if (me()) toast("Browsing as demo resident @afnana — log out to switch accounts", "gold");
+      }
+      if (me()) enterApp();
+      else showAuth();
+    } catch (e) {
+      console.error("Facecome boot failed:", e);
+      showBootError();
     }
-    if (me()) enterApp();
-    else showAuth();
     FC.router.start();
 
     setInterval(() => {
