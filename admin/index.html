@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Facecome — admin</title>
+<meta name="theme-color" content="#070b18" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23070b18'/%3E%3Cpath d='M20 46V18h26v8H30v6h13v8H30v6z' fill='%23f0c94a'/%3E%3Ccircle cx='48' cy='46' r='5' fill='%234a7dff'/%3E%3C/svg%3E" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;0,900;1,500&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="../assets/css/theme.css" />
+<link rel="stylesheet" href="../assets/css/admin.css" />
+</head>
+<body>
+<div class="stars" aria-hidden="true"></div>
+
+<section id="adminLogin" class="auth-screen" hidden></section>
+
+<div id="adminApp" class="admin-app" hidden>
+  <aside id="adminNav" class="admin-side glass"></aside>
+  <main class="admin-main">
+    <header id="adminTop" class="admin-top glass"></header>
+    <div id="adminView" class="admin-main"></div>
+  </main>
+</div>
+
+<div class="overlay" id="overlay"></div>
+<div class="modal-wrap" id="modalWrap" role="dialog" aria-modal="true"><div class="modal-box" id="modalBox"></div></div>
+<div id="fcToast" class="toast"></div>
+
+<script src="../assets/js/ui.js"></script>
+<script src="../assets/js/store.js"></script>
+<script src="../assets/js/auth.js"></script>
+<script src="../assets/js/admin.js"></script>
+</body>
+</html>
